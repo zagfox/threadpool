@@ -9,6 +9,11 @@ typedef struct threadtask_t {
 	void* args;
 } threadtask;
 
+typedef enum {
+	force_shutdown = 1,
+	soft_shutdown  = 2
+} threadpool_shutdown_type;
+
 typedef struct threadpool_t {
 	int shutdown;
 
@@ -37,10 +42,12 @@ void* threadpool_worker(void *args) {
 			pthread_cond_wait(&pool->queue_cond, &pool->queue_lock);
 		}
 
-		if (pool->shutdown != 0) {
+		if (pool->shutdown == force_shutdown || 
+		   (pool->queue_count == 0 && pool->shutdown == soft_shutdown)) {
 			pthread_mutex_unlock(&pool->queue_lock);
 			break;
 		}
+
 		cur = pool->queue_start;
 		task.func = pool->queue[cur].func;
 		task.args = pool->queue[cur].args;
@@ -57,7 +64,7 @@ void* threadpool_worker(void *args) {
 	return NULL;
 }
 
-int threadpool_free(threadpool *pool) {
+int threadpool_free(threadpool *pool, int force) {
 	int i, err = 0;
 
 	if (pool == NULL)
@@ -67,7 +74,8 @@ int threadpool_free(threadpool *pool) {
 		return threadpool_lock_err;
 
 	do {
-		pool->shutdown = 1;
+		pool->shutdown = (force == 0 ? soft_shutdown : force_shutdown);
+
 		if (0 != pthread_cond_broadcast(&pool->queue_cond)) {
 			err = threadpool_cond_err;
 			break;
@@ -123,7 +131,7 @@ threadpool* threadpool_init(int num_thread, int queue_size) {
 	
 err:
 	if (pool != NULL) {
-		threadpool_free(pool);
+		threadpool_free(pool, 0);
 	}
 	return NULL;
 }
@@ -141,6 +149,12 @@ int threadpool_add(threadpool *pool, void (*func)(void*), void* args) {
 			err = threadpool_full_err;
 			break;
 		}
+
+		if (pool->shutdown != 0) {
+			err = threadpool_shut_err;
+			break;
+		}
+
 		cur = pool->queue_end;
 		pool->queue[cur].func = func;
 		pool->queue[cur].args = args;

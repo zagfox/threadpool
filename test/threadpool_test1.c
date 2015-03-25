@@ -17,7 +17,7 @@ int main() {
 	sleep(2);
 
 	printf("begin free\n");
-	threadpool_free(pool);
+	threadpool_free(pool, 0);
 
 	return 0;
 }
