@@ -1,0 +1,5 @@
+Implementing threadpool in C
+
+Using pthread mutex and condition variable to synchronize
+
+Main reference: https://github.com/mbrossard/threadpool

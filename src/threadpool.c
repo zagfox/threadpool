@@ -54,7 +54,7 @@ void* threadpool_worker(void *args) {
 	}
 
 	pthread_exit(NULL);
-	return;
+	return NULL;
 }
 
 int threadpool_free(threadpool *pool) {
@@ -93,9 +93,9 @@ int threadpool_free(threadpool *pool) {
 	return err;
 }
 
-threadpool* threadpool_init(int num_thread) {
+threadpool* threadpool_init(int num_thread, int queue_size) {
 	threadpool* pool;
-	int i, queue_size;
+	int i;
 
 	pool = (threadpool*)malloc(sizeof(threadpool));
 	if (pool == NULL) 
@@ -106,7 +106,6 @@ threadpool* threadpool_init(int num_thread) {
 	pool->num_thread = num_thread;
 	pool->worker_threads = (pthread_t*)malloc(sizeof(pthread_t) * num_thread);
 
-	queue_size = num_thread * 2 + 1;
 	pool->queue_size = queue_size;
 	pool->queue_start = 0;
 	pool->queue_end = 0;

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <unistd.h>
 #include <stdio.h>
 
 #include "threadpool.h"
@@ -9,7 +10,7 @@ void print(void* args) {
 
 int main() {
 	//(*print)(NULL);
-	threadpool *pool = threadpool_init(1);
+	threadpool *pool = threadpool_init(1, 1);
 
 	threadpool_add(pool, print, NULL);
 	threadpool_add(pool, print, NULL);

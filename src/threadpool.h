@@ -14,7 +14,7 @@ typedef struct threadpool_t threadpool;
  * @param num_thread Number of workers
  * @return A new thread pool, with workers running
  */
-threadpool* threadpool_init(int num_thread);
+threadpool* threadpool_init(int num_thread, int queue_size);
 
 /*
  * @brief add a task to threadpool
